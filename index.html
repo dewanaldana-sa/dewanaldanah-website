@@ -79,10 +79,12 @@
             --royal-deep: #0A1628;
             --royal-mid: #122C52;
             --silver-accent: #C0C0C0;
+            --container-padding: 24px;
         }
         
         * {
             font-family: 'Tajawal', sans-serif;
+            box-sizing: border-box;
         }
         
         html {
@@ -147,17 +149,6 @@
             to { transform: scaleX(1); }
         }
         
-        @keyframes slideInRight {
-            from {
-                opacity: 0;
-                transform: translateX(-30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-        
         @keyframes pulse-ring {
             0% {
                 transform: scale(1);
@@ -176,25 +167,6 @@
         .animate-fade-in {
             animation: fadeIn 0.6s ease-out forwards;
         }
-        
-        .animate-line-grow {
-            animation: lineGrow 0.6s ease-out forwards;
-            transform-origin: right;
-        }
-        
-        .animate-slide-in {
-            animation: slideInRight 0.6s ease-out forwards;
-        }
-        
-        /* Stagger delays */
-        .delay-100 { animation-delay: 0.1s; }
-        .delay-200 { animation-delay: 0.2s; }
-        .delay-300 { animation-delay: 0.3s; }
-        .delay-400 { animation-delay: 0.4s; }
-        .delay-500 { animation-delay: 0.5s; }
-        .delay-600 { animation-delay: 0.6s; }
-        .delay-700 { animation-delay: 0.7s; }
-        .delay-800 { animation-delay: 0.8s; }
         
         /* Reveal animation */
         .reveal {
@@ -276,12 +248,6 @@
         }
         
         /* Timeline */
-        .timeline-line {
-            height: 2px;
-            background: linear-gradient(90deg, #122C52, #234B7A, #3A6499);
-            transform-origin: right;
-        }
-        
         .timeline-dot {
             transition: all 0.3s ease;
         }
@@ -403,6 +369,568 @@
             border-radius: 14px;
             z-index: -1;
         }
+
+        /* ========================================
+           MOBILE RESPONSIVE - WIDE COMFORTABLE LAYOUT
+           ======================================== */
+
+        @media (max-width: 768px) {
+            :root {
+                --container-padding: 20px;
+            }
+
+            /* ===== GLOBAL WIDTH & SPACING ===== */
+            .max-w-7xl {
+                max-width: 100%;
+                padding-left: var(--container-padding);
+                padding-right: var(--container-padding);
+            }
+
+            /* ===== HERO SECTION ===== */
+            #hero {
+                min-height: 100vh;
+                height: auto;
+            }
+
+            .hero-video {
+                object-position: center center;
+            }
+
+            #hero .hero-overlay {
+                background: linear-gradient(
+                    180deg,
+                    rgba(10, 22, 40, 0.45) 0%,
+                    rgba(10, 22, 40, 0.72) 45%,
+                    rgba(10, 22, 40, 0.96) 100%
+                );
+            }
+
+            #hero-content {
+                padding: 100px 0 120px;
+                width: 100%;
+                max-width: 100%;
+            }
+
+            #hero .silver-line {
+                width: 100px;
+                margin-bottom: 28px;
+            }
+
+            .hero-headline {
+                font-size: clamp(2rem, 9vw, 2.8rem);
+                letter-spacing: 0.03em;
+                word-spacing: 0.1em;
+                line-height: 1.35;
+                margin-bottom: 24px;
+                padding: 0 8px;
+            }
+
+            .hero-headline span {
+                margin-top: 10px;
+            }
+
+            #hero-content p {
+                font-size: clamp(1.1rem, 4.5vw, 1.25rem);
+                line-height: 1.75;
+                margin-bottom: 40px;
+                padding: 0 4px;
+            }
+
+            #hero-content .flex {
+                flex-direction: row;
+                gap: 12px;
+                width: 100%;
+            }
+
+            #hero-content .btn-primary,
+            #hero-content .btn-secondary {
+                flex: 1;
+                padding: 16px 20px;
+                font-size: 1rem;
+                text-align: center;
+                justify-content: center;
+            }
+
+            #hero .absolute.bottom-8 {
+                bottom: 24px;
+            }
+
+            /* ===== NAVIGATION ===== */
+            #navbar {
+                padding: 14px 0;
+            }
+
+            #navbar .max-w-7xl {
+                padding-left: var(--container-padding);
+                padding-right: var(--container-padding);
+            }
+
+            #navbar img {
+                height: 48px;
+            }
+
+            #menu-btn {
+                width: 48px;
+                height: 48px;
+                gap: 6px;
+            }
+
+            #menu-btn .menu-line {
+                width: 24px;
+                height: 2.5px;
+            }
+
+            #menu-btn .menu-line:last-child {
+                width: 16px;
+            }
+
+            .mobile-link {
+                font-size: 1.6rem;
+                padding: 14px 0;
+            }
+
+            /* ===== SECTION SPACING ===== */
+            #services,
+            #why-us,
+            #process,
+            #location,
+            #contact {
+                padding: 70px 0;
+            }
+
+            section h2 {
+                font-size: clamp(2rem, 8vw, 2.5rem);
+                margin-bottom: 12px;
+            }
+
+            section .silver-line {
+                width: 70px;
+                margin-top: 18px;
+            }
+
+            section .text-center.mb-20 {
+                margin-bottom: 50px;
+            }
+
+            section .text-center.mb-16 {
+                margin-bottom: 44px;
+            }
+
+            section span.text-lg {
+                font-size: 1rem;
+            }
+
+            /* ===== SERVICES SECTION - 2 COLUMNS ===== */
+            #services .grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 14px;
+            }
+
+            .service-card {
+                padding: 20px 16px;
+                border-radius: 16px;
+            }
+
+            .service-card .w-14 {
+                width: 48px;
+                height: 48px;
+                border-radius: 12px;
+                margin-bottom: 14px;
+            }
+
+            .service-card .w-14 svg {
+                width: 24px;
+                height: 24px;
+            }
+
+            .service-card h3 {
+                font-size: 1rem;
+                margin-bottom: 8px;
+                line-height: 1.4;
+            }
+
+            .service-card p {
+                font-size: 0.85rem;
+                line-height: 1.55;
+            }
+
+            /* ===== WHY US SECTION ===== */
+            #why-us .grid.lg\:grid-cols-2 {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+
+            #why-us .reveal:first-child {
+                text-align: center;
+            }
+
+            #why-us .silver-line {
+                margin: 0 auto 28px auto;
+            }
+
+            #why-us p.text-xl {
+                font-size: 1.05rem;
+                line-height: 1.75;
+                margin-bottom: 28px;
+            }
+
+            #why-us .btn-primary {
+                padding: 16px 28px;
+            }
+
+            /* Features Grid - 2 COLUMNS */
+            #why-us .grid.grid-cols-2 {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 14px;
+            }
+
+            #why-us .grid.grid-cols-2 > div {
+                padding: 18px 14px;
+                text-align: center;
+            }
+
+            #why-us .grid.grid-cols-2 .w-12 {
+                width: 44px;
+                height: 44px;
+                margin: 0 auto 12px auto;
+            }
+
+            #why-us .grid.grid-cols-2 h4 {
+                font-size: 0.95rem;
+                line-height: 1.4;
+            }
+
+            /* ===== PROCESS SECTION - HORIZONTAL CARDS ===== */
+            #process .grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .timeline-item {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                text-align: right;
+            }
+
+            .timeline-item > div:first-child {
+                flex-shrink: 0;
+                margin-bottom: 0;
+            }
+
+            .timeline-dot {
+                width: 60px;
+                height: 60px;
+            }
+
+            .timeline-dot span {
+                font-size: 1.35rem;
+            }
+
+            .timeline-item > div:last-child {
+                flex: 1;
+                padding: 18px 20px;
+                text-align: right;
+            }
+
+            .timeline-item h4 {
+                font-size: 1.15rem;
+                margin-bottom: 4px;
+            }
+
+            .timeline-item p {
+                font-size: 0.9rem;
+            }
+
+            /* ===== LOCATION SECTION ===== */
+            #location .grid.lg\:grid-cols-2 {
+                grid-template-columns: 1fr;
+                gap: 36px;
+            }
+
+            #location .reveal:first-child {
+                text-align: center;
+            }
+
+            #location .silver-line {
+                margin: 0 auto 28px auto;
+            }
+
+            #location .flex.items-start {
+                flex-direction: row;
+                text-align: right;
+                justify-content: flex-start;
+            }
+
+            #location .flex.items-start .w-12 {
+                margin-bottom: 0;
+            }
+
+            #location .btn-primary {
+                padding: 16px 28px;
+            }
+
+            #location iframe {
+                height: 300px;
+            }
+
+            /* ===== CONTACT SECTION ===== */
+            #contact .grid.lg\:grid-cols-3 {
+                grid-template-columns: 1fr;
+                gap: 36px;
+            }
+
+            #contact h3 {
+                font-size: 1.3rem;
+                margin-bottom: 20px;
+                text-align: center;
+            }
+
+            #contact .space-y-6 {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+
+            #contact .flex.items-center.gap-4 {
+                padding: 16px;
+                flex-direction: column;
+                text-align: center;
+                gap: 12px;
+            }
+
+            #contact .flex.items-center.gap-4 .w-14 {
+                width: 50px;
+                height: 50px;
+            }
+
+            #contact .flex.items-center.gap-4 p.text-xl {
+                font-size: 1.05rem;
+            }
+
+            /* QR Container */
+            .qr-container {
+                padding: 28px 20px;
+            }
+
+            .qr-frame {
+                padding: 14px;
+            }
+
+            .qr-frame img {
+                width: 160px;
+                height: 160px;
+            }
+
+            .qr-container p {
+                font-size: 1rem;
+            }
+
+            /* Contact Form */
+            #contact .bg-royal-900\/5 {
+                padding: 24px 20px;
+            }
+
+            .form-input {
+                padding: 16px 18px;
+                font-size: 1.05rem;
+            }
+
+            #contact button[type="submit"] {
+                padding: 16px 28px;
+            }
+
+            /* ===== FOOTER ===== */
+            footer {
+                padding: 50px 0;
+            }
+
+            footer img {
+                height: 52px;
+            }
+
+            footer .flex.flex-wrap {
+                gap: 20px 32px;
+                justify-content: center;
+            }
+
+            footer a {
+                font-size: 1.05rem;
+            }
+
+            footer .text-white\/60 {
+                gap: 12px 24px;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            footer .border-t {
+                flex-direction: column;
+                text-align: center;
+                gap: 10px;
+            }
+
+            footer p {
+                font-size: 0.9rem;
+            }
+
+            /* ===== WHATSAPP BUTTON ===== */
+            .whatsapp-btn {
+                width: 60px;
+                height: 60px;
+                bottom: 24px;
+                left: 20px;
+            }
+
+            .whatsapp-btn svg {
+                width: 30px;
+                height: 30px;
+            }
+
+            /* ===== ANIMATIONS ===== */
+            .reveal {
+                transform: translateY(24px);
+            }
+
+            .service-card:active {
+                transform: translateY(-4px);
+                box-shadow: 0 12px 28px rgba(10, 22, 40, 0.12);
+            }
+        }
+
+        /* ===== SMALL MOBILE (max-width: 400px) ===== */
+        @media (max-width: 400px) {
+            :root {
+                --container-padding: 16px;
+            }
+
+            .hero-headline {
+                font-size: 1.75rem;
+            }
+
+            #hero-content p {
+                font-size: 1rem;
+            }
+
+            #hero-content .flex {
+                flex-direction: column;
+            }
+
+            #services .grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .service-card {
+                padding: 18px 16px;
+            }
+
+            #contact .space-y-6 {
+                grid-template-columns: 1fr;
+            }
+
+            .qr-frame img {
+                width: 140px;
+                height: 140px;
+            }
+
+            .whatsapp-btn {
+                width: 54px;
+                height: 54px;
+            }
+        }
+
+        /* ===== LANDSCAPE MOBILE ===== */
+        @media (max-width: 768px) and (orientation: landscape) {
+            #hero {
+                min-height: auto;
+                padding: 80px 0;
+            }
+
+            #hero-content {
+                padding: 20px 0 40px;
+            }
+
+            .hero-headline {
+                font-size: 2rem;
+            }
+        }
+
+        /* ===== TABLET (768px - 1024px) ===== */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            :root {
+                --container-padding: 32px;
+            }
+
+            #services .grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            #why-us .grid.lg\:grid-cols-2 {
+                grid-template-columns: 1fr;
+                gap: 48px;
+            }
+
+            #contact .grid.lg\:grid-cols-3 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* ===== TOUCH DEVICE OPTIMIZATIONS ===== */
+        @media (hover: none) and (pointer: coarse) {
+            .service-card:hover {
+                transform: none;
+                box-shadow: none;
+            }
+
+            .service-card:active {
+                transform: translateY(-4px);
+                box-shadow: 0 12px 24px rgba(10, 22, 40, 0.12);
+            }
+
+            .service-card:hover::after {
+                width: 0;
+            }
+
+            .service-card:active::after {
+                width: 100%;
+            }
+
+            .btn-primary:hover::before {
+                right: -100%;
+            }
+
+            .nav-link:hover::after {
+                width: 0;
+            }
+
+            .timeline-item:hover .timeline-dot {
+                transform: none;
+                box-shadow: none;
+            }
+
+            .timeline-item:active .timeline-dot {
+                transform: scale(1.15);
+            }
+        }
+
+        /* ===== SAFE AREA INSETS ===== */
+        @supports (padding: env(safe-area-inset-bottom)) {
+            @media (max-width: 768px) {
+                .whatsapp-btn {
+                    bottom: calc(20px + env(safe-area-inset-bottom));
+                    left: calc(20px + env(safe-area-inset-left));
+                }
+
+                footer {
+                    padding-bottom: calc(50px + env(safe-area-inset-bottom));
+                }
+
+                #hero {
+                    padding-top: env(safe-area-inset-top);
+                }
+            }
+        }
     </style>
 </head>
 <body class="bg-white text-royal-900 overflow-x-hidden">
@@ -430,7 +958,7 @@
                 </div>
                 
                 <!-- Mobile Menu Button -->
-                <button id="menu-btn" class="lg:hidden relative z-10 w-10 h-10 flex flex-col items-center justify-center gap-1.5">
+                <button id="menu-btn" class="lg:hidden relative z-10 w-10 h-10 flex flex-col items-center justify-center gap-1.5" aria-label="القائمة">
                     <span class="menu-line w-6 h-0.5 bg-white transition-all duration-300"></span>
                     <span class="menu-line w-6 h-0.5 bg-white transition-all duration-300"></span>
                     <span class="menu-line w-4 h-0.5 bg-white transition-all duration-300 mr-auto"></span>
@@ -440,12 +968,12 @@
         
         <!-- Mobile Menu -->
         <div id="mobile-menu" class="lg:hidden fixed inset-0 bg-royal-900/98 backdrop-blur-lg opacity-0 pointer-events-none transition-opacity duration-300">
-            <div class="flex flex-col items-center justify-center h-full gap-8">
-                <a href="#services" class="mobile-link text-3xl text-white font-bold opacity-0 transform translate-y-4">خدماتنا</a>
-                <a href="#why-us" class="mobile-link text-3xl text-white font-bold opacity-0 transform translate-y-4">لماذا نحن</a>
-                <a href="#process" class="mobile-link text-3xl text-white font-bold opacity-0 transform translate-y-4">مراحل العمل</a>
-                <a href="#location" class="mobile-link text-3xl text-white font-bold opacity-0 transform translate-y-4">موقعنا</a>
-                <a href="#contact" class="mobile-link text-3xl text-white font-bold opacity-0 transform translate-y-4">تواصل معنا</a>
+            <div class="flex flex-col items-center justify-center h-full gap-6 sm:gap-8">
+                <a href="#services" class="mobile-link text-2xl sm:text-3xl text-white font-bold opacity-0 transform translate-y-4">خدماتنا</a>
+                <a href="#why-us" class="mobile-link text-2xl sm:text-3xl text-white font-bold opacity-0 transform translate-y-4">لماذا نحن</a>
+                <a href="#process" class="mobile-link text-2xl sm:text-3xl text-white font-bold opacity-0 transform translate-y-4">مراحل العمل</a>
+                <a href="#location" class="mobile-link text-2xl sm:text-3xl text-white font-bold opacity-0 transform translate-y-4">موقعنا</a>
+                <a href="#contact" class="mobile-link text-2xl sm:text-3xl text-white font-bold opacity-0 transform translate-y-4">تواصل معنا</a>
             </div>
         </div>
     </nav>
@@ -1011,6 +1539,9 @@
         // Check for reduced motion preference
         const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         
+        // Detect mobile device
+        const isMobile = window.matchMedia('(max-width: 768px)').matches;
+        
         // Navbar scroll effect
         let lastScroll = 0;
         
@@ -1026,7 +1557,7 @@
             lastScroll = currentScroll;
         }
         
-        window.addEventListener('scroll', handleNavbarScroll);
+        window.addEventListener('scroll', handleNavbarScroll, { passive: true });
         
         // Mobile menu toggle
         let menuOpen = false;
@@ -1043,13 +1574,12 @@
                 menuLines[1].style.transform = 'rotate(-45deg)';
                 menuLines[2].style.opacity = '0';
                 
-                // Animate links
                 mobileLinks.forEach((link, index) => {
                     setTimeout(() => {
                         link.style.opacity = '1';
                         link.style.transform = 'translateY(0)';
                         link.style.transition = 'all 0.4s cubic-bezier(0.22, 1, 0.36, 1)';
-                    }, index * 100);
+                    }, index * 80);
                 });
             } else {
                 mobileMenu.classList.add('opacity-0', 'pointer-events-none');
@@ -1074,25 +1604,31 @@
             });
         });
         
-        // Hero content reveal with 3 second delay
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && menuOpen) {
+                toggleMenu();
+            }
+        });
+        
+        // Hero content reveal
         function revealHeroContent() {
+            const delay = isMobile ? 1500 : 3000;
+            
             if (prefersReducedMotion) {
                 heroContent.style.opacity = '1';
             } else {
                 setTimeout(() => {
                     heroContent.style.opacity = '1';
                     heroContent.style.transition = 'opacity 0.5s ease';
-                }, 3000);
+                }, delay);
             }
         }
         
-        // Video loaded check
         if (heroVideo.readyState >= 3) {
             revealHeroContent();
         } else {
             heroVideo.addEventListener('loadeddata', revealHeroContent);
-            // Fallback if video takes too long
-            setTimeout(revealHeroContent, 5000);
+            setTimeout(revealHeroContent, 4000);
         }
         
         // Scroll reveal animation
@@ -1101,18 +1637,14 @@
             
             const observerOptions = {
                 root: null,
-                rootMargin: '0px',
-                threshold: 0.1
+                rootMargin: isMobile ? '0px 0px -30px 0px' : '0px',
+                threshold: isMobile ? 0.05 : 0.1
             };
             
             const revealObserver = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
-                        if (prefersReducedMotion) {
-                            entry.target.classList.add('active');
-                        } else {
-                            entry.target.classList.add('active');
-                        }
+                        entry.target.classList.add('active');
                         revealObserver.unobserve(entry.target);
                     }
                 });
@@ -1123,10 +1655,9 @@
             });
         }
         
-        // Initialize reveal animations
         setupRevealAnimations();
         
-        // Smooth scroll for anchor links
+        // Smooth scroll
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function(e) {
                 e.preventDefault();
@@ -1144,7 +1675,7 @@
             });
         });
         
-        // Form submission handling
+        // Form submission
         const contactForm = document.getElementById('contact-form');
         
         contactForm.addEventListener('submit', function(e) {
@@ -1154,18 +1685,14 @@
             const phone = document.getElementById('phone').value;
             const message = document.getElementById('message').value;
             
-            // Create WhatsApp message
             const whatsappMessage = `الاسم: ${name}%0Aرقم الهاتف: ${phone}%0Aالرسالة: ${message}`;
             
-            // Open WhatsApp with the message
             window.open(`https://wa.me/966579507255?text=${whatsappMessage}`, '_blank');
-            
-            // Reset form
             contactForm.reset();
         });
         
-        // Parallax effect on scroll (if not reduced motion)
-        if (!prefersReducedMotion) {
+        // Parallax - disabled on mobile
+        if (!prefersReducedMotion && !isMobile) {
             let ticking = false;
             
             window.addEventListener('scroll', () => {
@@ -1180,26 +1707,26 @@
                         
                         ticking = false;
                     });
-                    
                     ticking = true;
                 }
-            });
+            }, { passive: true });
         }
         
-        // Service cards stagger animation on scroll
+        // Service cards animation
         const serviceCards = document.querySelectorAll('.service-card');
         
         const cardObserver = new IntersectionObserver((entries) => {
             entries.forEach((entry, index) => {
                 if (entry.isIntersecting) {
+                    const delay = isMobile ? index * 50 : index * 100;
                     setTimeout(() => {
                         entry.target.style.opacity = '1';
                         entry.target.style.transform = 'translateY(0)';
-                    }, index * 100);
+                    }, delay);
                     cardObserver.unobserve(entry.target);
                 }
             });
-        }, { threshold: 0.1 });
+        }, { threshold: isMobile ? 0.05 : 0.1 });
         
         serviceCards.forEach(card => {
             if (!prefersReducedMotion) {
@@ -1226,7 +1753,7 @@
             timelineObserver.observe(item);
         });
         
-        // Add focus visible support
+        // Keyboard navigation
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Tab') {
                 document.body.classList.add('keyboard-nav');
@@ -1236,7 +1763,17 @@
         document.addEventListener('mousedown', () => {
             document.body.classList.remove('keyboard-nav');
         });
+        
+        // Resize handler
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                if (window.innerWidth > 1024 && menuOpen) {
+                    toggleMenu();
+                }
+            }, 250);
+        }, { passive: true });
     </script>
 </body>
-
 </html>
