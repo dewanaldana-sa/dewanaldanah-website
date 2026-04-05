@@ -1,6 +1,3 @@
-Here is the completely upgraded `WebGLCanvas.tsx` component. I have rewritten the building generation logic to implement the realistic architectural facade, window system, and interior depth while preserving the camera animation and scroll systems exactly as requested.
-
-```tsx
 "use client";
 
 import { useEffect, useRef } from "react";
@@ -498,4 +495,3 @@ export default function WebGLCanvas() {
     />
   );
 }
-```
