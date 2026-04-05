@@ -1,3 +1,6 @@
+Here is the completely upgraded `WebGLCanvas.tsx` component. I have rewritten the building generation logic to implement the realistic architectural facade, window system, and interior depth while preserving the camera animation and scroll systems exactly as requested.
+
+```tsx
 "use client";
 
 import { useEffect, useRef } from "react";
@@ -16,12 +19,12 @@ export default function WebGLCanvas() {
 
   useEffect(() => {
     if (typeof window === "undefined" || !canvasRef.current || isInitialized.current) return;
-    
+
     isInitialized.current = true;
     let animationId: number;
-    
+
     // =========================================================================
-    // LENIS SMOOTH SCROLL
+    // LENIS SMOOTH SCROLL (PRESERVED)
     // =========================================================================
     const lenis = new Lenis({
       duration: 1.2,
@@ -32,237 +35,354 @@ export default function WebGLCanvas() {
       wheelMultiplier: 1,
       touchMultiplier: 2,
     });
-    
+
     lenisRef.current = lenis;
     lenis.on("scroll", ScrollTrigger.update);
-    
+
     gsap.ticker.add((time) => {
       lenis.raf(time * 1000);
     });
-    
+
     gsap.ticker.lagSmoothing(0);
 
     // =========================================================================
-    // THREE.JS SCENE - PROCEDURAL SKYSCRAPER WITH CINEMATIC DRONE PATH
+    // THREE.JS SCENE - REALISTIC ARCHITECTURAL TOWER
     // =========================================================================
     const initScene = async () => {
       const THREE = await import("three");
-      
+
       const canvas = canvasRef.current;
       if (!canvas) return;
-      
+
       // =========================================================================
-      // 1. BASIC SETUP
+      // 1. BASIC SETUP (PRESERVED)
       // =========================================================================
       const scene = new THREE.Scene();
       scene.background = new THREE.Color(0x050a15);
-      scene.fog = new THREE.FogExp2(0x050a15, 0.008);
-      
+      scene.fog = new THREE.FogExp2(0x050a15, 0.006);
+
       const isMobile = window.innerWidth < 768;
-      
+
       const camera = new THREE.PerspectiveCamera(
         60,
         window.innerWidth / window.innerHeight,
         0.1,
         1000
       );
-      
+
       // Building parameters
       const floors = 25;
       const floorHeight = 3.5;
       const buildingSize = 24;
       const coreSize = 8;
-      
+
       const renderer = new THREE.WebGLRenderer({
         canvas,
         antialias: !isMobile,
         alpha: false,
         powerPreference: "high-performance",
       });
-      
+
       renderer.setSize(window.innerWidth, window.innerHeight);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1 : 2));
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.2;
-      
+      renderer.toneMappingExposure = 1.0;
+
       // =========================================================================
-      // 2. LIGHTS
+      // 2. LIGHTING UPGRADE (PHASE 6)
       // =========================================================================
-      const ambientLight = new THREE.AmbientLight(0x1a2a4a, 1.2);
+      // Soft ambient (subtle blue)
+      const ambientLight = new THREE.AmbientLight(0x4466aa, 0.4);
       scene.add(ambientLight);
-      
-      const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-      directionalLight.position.set(50, 100, 50);
-      scene.add(directionalLight);
-      
-      const cyanLight1 = new THREE.PointLight(0x00e5ff, 2.5, 200);
-      cyanLight1.position.set(-40, 60, 40);
-      scene.add(cyanLight1);
-      
-      const cyanLight2 = new THREE.PointLight(0x00e5ff, 1.5, 150);
-      cyanLight2.position.set(40, 40, -40);
-      scene.add(cyanLight2);
-      
-      const bottomLight = new THREE.PointLight(0x00e5ff, 0.5, 80);
-      bottomLight.position.set(0, 5, 0);
-      scene.add(bottomLight);
-      
+
+      // Main directional (sun)
+      const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+      dirLight.position.set(50, 100, 50);
+      scene.add(dirLight);
+
+      // Interior warm lights
+      const interiorLight = new THREE.PointLight(0xffaa55, 1.5, 150);
+      interiorLight.position.set(0, floors * floorHeight / 2, 0);
+      scene.add(interiorLight);
+
+      // Exterior accent (subtle cyan, distant)
+      const accentLight = new THREE.PointLight(0x00e5ff, 0.6, 300);
+      accentLight.position.set(-60, 80, -60);
+      scene.add(accentLight);
+
       // =========================================================================
-      // 3. MATERIALS
+      // 3. MATERIALS REBUILD (PHASE 4)
       // =========================================================================
-      const solidMat = new THREE.MeshStandardMaterial({ 
-        color: 0x1a2744,
-        roughness: 0.7, 
-        metalness: 0.3,
+      
+      // Primary Structural Material (Used for Core, Floor Slabs, Mullions)
+      // We keep 'solidMat' name so existing GSAP timeline works on it.
+      const solidMat = new THREE.MeshStandardMaterial({
+        color: 0x1a2744, // Concrete dark blue
+        roughness: 0.7,
+        metalness: 0.1,
+        transparent: true,
+        opacity: 0 // Animated by GSAP
+      });
+
+      // Metal Frame Material (For Mullions/Spandrels)
+      const metalMat = new THREE.MeshStandardMaterial({
+        color: 0x8a9bb0, // Silver/Grey metal
+        roughness: 0.4,
+        metalness: 0.8,
+        transparent: true,
+        opacity: 0 // Animated by GSAP
+      });
+
+      // Glass Material
+      const glassMat = new THREE.MeshPhysicalMaterial({
+        color: 0x88ccff,
+        metalness: 0.1,
+        roughness: 0.1,
+        transmission: 0.9, // Real glass effect
+        transparent: true,
+        opacity: 0, // Animated manually
+        thickness: 0.5
+      });
+
+      // Window "Light" Material (InstancedMesh color will override)
+      const windowLightMat = new THREE.MeshBasicMaterial({
+        vertexColors: true,
         transparent: true,
         opacity: 0
       });
-      
-      const wireMat = new THREE.MeshBasicMaterial({ 
-        color: 0x00e5ff,
-        wireframe: true, 
-        transparent: true, 
-        opacity: 0.35
-      });
-      
+
       // =========================================================================
-      // 4. BUILDING CORE
+      // 4. BUILDING CORE (PHASE 5)
       // =========================================================================
       const coreGeo = new THREE.BoxGeometry(coreSize, floors * floorHeight, coreSize);
-      const coreSolid = new THREE.Mesh(coreGeo, solidMat);
-      const coreWire = new THREE.Mesh(coreGeo, wireMat);
-      coreSolid.position.y = (floors * floorHeight) / 2;
-      coreWire.position.y = (floors * floorHeight) / 2;
-      scene.add(coreSolid, coreWire);
-      
+      const coreMesh = new THREE.Mesh(coreGeo, solidMat);
+      coreMesh.position.y = (floors * floorHeight) / 2;
+      scene.add(coreMesh);
+
       // =========================================================================
-      // 5. FLOOR SLABS
+      // 5. FACADE SYSTEM (PHASE 2 & 8)
       // =========================================================================
-      const slabGeo = new THREE.BoxGeometry(buildingSize, 0.4, buildingSize);
-      const slabsSolid = new THREE.InstancedMesh(slabGeo, solidMat, floors);
-      const slabsWire = new THREE.InstancedMesh(slabGeo, wireMat, floors);
       
-      const dummySlab = new THREE.Object3D();
-      for (let i = 0; i < floors; i++) {
-        dummySlab.position.set(0, i * floorHeight, 0);
-        dummySlab.updateMatrix();
-        slabsSolid.setMatrixAt(i, dummySlab.matrix);
-        slabsWire.setMatrixAt(i, dummySlab.matrix);
-      }
-      slabsSolid.instanceMatrix.needsUpdate = true;
-      slabsWire.instanceMatrix.needsUpdate = true;
-      scene.add(slabsSolid, slabsWire);
+      // Configuration
+      const panelsPerSide = isMobile ? 4 : 6;
+      const panelWidth = buildingSize / panelsPerSide;
+      const mullionWidth = 0.12;
+      const spandrelHeight = 0.8;
+      const windowDepth = 0.15; // Slight extrusion
+
+      // Counts
+      const totalMullions = (panelsPerSide + 1) * 4 * floors;
+      const totalSpandrels = panelsPerSide * 4 * floors;
+      const totalWindows = panelsPerSide * 4 * floors;
+
+      // Geometries
+      const mullionGeo = new THREE.BoxGeometry(mullionWidth, floorHeight, 0.3);
+      const spandrelGeo = new THREE.BoxGeometry(panelWidth, spandrelHeight, 0.25);
+      const windowGeo = new THREE.BoxGeometry(panelWidth - 0.1, floorHeight - spandrelHeight - 0.2, 0.1);
       
-      // =========================================================================
-      // 6. PERIMETER COLUMNS
-      // =========================================================================
-      const colGeo = new THREE.BoxGeometry(0.8, floorHeight, 0.8);
-      const columnsPerSide = 5;
-      const totalColumns = floors * (columnsPerSide * 4);
-      const colsSolid = new THREE.InstancedMesh(colGeo, solidMat, totalColumns);
-      const colsWire = new THREE.InstancedMesh(colGeo, wireMat, totalColumns);
-      
-      const dummyCol = new THREE.Object3D();
-      let colIndex = 0;
-      const offset = buildingSize / 2 - 0.5;
-      
-      for (let i = 0; i < floors; i++) {
-        const yPos = i * floorHeight + floorHeight / 2;
-        
-        for (let j = 0; j < columnsPerSide; j++) {
-          const step = (j / (columnsPerSide - 1)) * buildingSize - buildingSize / 2;
+      // InstancedMeshes
+      const mullionMesh = new THREE.InstancedMesh(mullionGeo, metalMat, totalMullions);
+      const spandrelMesh = new THREE.InstancedMesh(spandrelGeo, metalMat, totalSpandrels);
+      const windowMesh = new THREE.InstancedMesh(windowGeo, glassMat, totalWindows); // Glass shell
+      const lightMesh = new THREE.InstancedMesh(windowGeo, windowLightMat, totalWindows); // Interior light
+
+      const dummy = new THREE.Object3D();
+      const color = new THREE.Color();
+
+      // Warm and Cool colors for windows
+      const warmColor = new THREE.Color(0xFFD9A0);
+      const coolColor = new THREE.Color(0x3A6499);
+      const offColor = new THREE.Color(0x000000);
+
+      let mullionIndex = 0;
+      let panelIndex = 0;
+
+      // Iterate Floors
+      for (let f = 0; f < floors; f++) {
+        const yBase = f * floorHeight;
+
+        // Iterate Sides (4 sides)
+        for (let s = 0; s < 4; s++) {
+          // Calculate side offset/rotation logic
+          // We manually position things on the perimeter
           
-          dummyCol.position.set(step, yPos, offset);
-          dummyCol.updateMatrix();
-          colsSolid.setMatrixAt(colIndex, dummyCol.matrix);
-          colsWire.setMatrixAt(colIndex++, dummyCol.matrix);
-          
-          dummyCol.position.set(step, yPos, -offset);
-          dummyCol.updateMatrix();
-          colsSolid.setMatrixAt(colIndex, dummyCol.matrix);
-          colsWire.setMatrixAt(colIndex++, dummyCol.matrix);
-          
-          if (j > 0 && j < columnsPerSide - 1) {
-            dummyCol.position.set(offset, yPos, step);
-            dummyCol.updateMatrix();
-            colsSolid.setMatrixAt(colIndex, dummyCol.matrix);
-            colsWire.setMatrixAt(colIndex++, dummyCol.matrix);
+          // Helper to get position based on side and step
+          const getPos = (step: number) => {
+            const x = step * panelWidth - buildingSize / 2 + panelWidth / 2;
+            const offset = buildingSize / 2;
             
-            dummyCol.position.set(-offset, yPos, step);
-            dummyCol.updateMatrix();
-            colsSolid.setMatrixAt(colIndex, dummyCol.matrix);
-            colsWire.setMatrixAt(colIndex++, dummyCol.matrix);
+            // Side 0: Front (z+)
+            // Side 1: Right (x+)
+            // Side 2: Back (z-)
+            // Side 3: Left (x-)
+            
+            if (s === 0) return { x: x, z: offset };
+            if (s === 1) return { x: offset, z: -x }; // Rotate 90
+            if (s === 2) return { x: -x, z: -offset }; // Rotate 180
+            return { x: -offset, z: x }; // Rotate 270
+          };
+
+          // 1. Place Mullions (Vertical columns)
+          for (let m = 0; m <= panelsPerSide; m++) {
+            const pos = getPos(m - 0.5); // Offset by half panel
+            dummy.position.set(
+              pos.x,
+              yBase + floorHeight / 2,
+              pos.z
+            );
+            
+            // Rotate mullion to face outward
+            if (s === 1) dummy.rotation.y = Math.PI / 2;
+            else if (s === 2) dummy.rotation.y = Math.PI;
+            else if (s === 3) dummy.rotation.y = -Math.PI / 2;
+            else dummy.rotation.y = 0;
+
+            dummy.updateMatrix();
+            mullionMesh.setMatrixAt(mullionIndex++, dummy.matrix);
+          }
+
+          // 2. Place Spandrels (Bottom horizontal metal strip)
+          for (let p = 0; p < panelsPerSide; p++) {
+            const pos = getPos(p);
+            dummy.position.set(
+              pos.x,
+              yBase + spandrelHeight / 2,
+              pos.z
+            );
+            
+            if (s === 1) dummy.rotation.y = Math.PI / 2;
+            else if (s === 2) dummy.rotation.y = Math.PI;
+            else if (s === 3) dummy.rotation.y = -Math.PI / 2;
+            else dummy.rotation.y = 0;
+
+            dummy.updateMatrix();
+            spandrelMesh.setMatrixAt(panelIndex, dummy.matrix);
+
+            // 3. Place Windows & Lights
+            // Window position (above spandrel)
+            dummy.position.set(
+              pos.x,
+              yBase + spandrelHeight + (floorHeight - spandrelHeight) / 2,
+              pos.z + 0.05 // Slight extrusion
+            );
+            dummy.updateMatrix();
+            windowMesh.setMatrixAt(panelIndex, dummy.matrix);
+            lightMesh.setMatrixAt(panelIndex, dummy.matrix);
+
+            // 4. Window Color Logic (Phase 3)
+            // 30% chance ON, 70% OFF
+            const isOn = Math.random() > 0.7;
+            if (isOn) {
+              const isWarm = Math.random() > 0.4; // Mix of warm and cool
+              color.copy(isWarm ? warmColor : coolColor);
+              // Random intensity variation
+              color.multiplyScalar(0.8 + Math.random() * 0.4);
+            } else {
+              color.set(0x111111); // Dark interior
+            }
+            
+            lightMesh.setColorAt(panelIndex, color);
+            
+            panelIndex++;
           }
         }
       }
-      colsSolid.instanceMatrix.needsUpdate = true;
-      colsWire.instanceMatrix.needsUpdate = true;
-      scene.add(colsSolid, colsWire);
-      
+
+      mullionMesh.instanceMatrix.needsUpdate = true;
+      spandrelMesh.instanceMatrix.needsUpdate = true;
+      windowMesh.instanceMatrix.needsUpdate = true;
+      lightMesh.instanceMatrix.needsUpdate = true;
+      if (lightMesh.instanceColor) lightMesh.instanceColor.needsUpdate = true;
+
+      scene.add(mullionMesh, spandrelMesh, windowMesh, lightMesh);
+
       // =========================================================================
-      // 7. GLOW LINES
+      // 6. INTERIOR DEPTH (PHASE 5)
       // =========================================================================
-      const lineGeo = new THREE.BoxGeometry(buildingSize + 0.5, 0.05, buildingSize + 0.5);
-      const lineMat = new THREE.MeshBasicMaterial({
-        color: 0x00e5ff,
-        transparent: true,
-        opacity: 0.2,
-      });
       
-      const glowLines: THREE.Mesh[] = [];
+      // Floor Slabs (Visual thickness inside)
+      const slabGeo = new THREE.BoxGeometry(buildingSize - 0.5, 0.4, buildingSize - 0.5);
+      const slabs = new THREE.InstancedMesh(slabGeo, solidMat, floors);
+      
+      // Interior Partitions (Random walls inside to avoid hollow look)
+      const partitionGeo = new THREE.BoxGeometry(buildingSize * 0.6, floorHeight - 0.5, 0.2);
+      const partitions = new THREE.InstancedMesh(partitionGeo, solidMat, Math.floor(floors / 2));
+      
+      const dummySlab = new THREE.Object3D();
+      let partitionIdx = 0;
+
       for (let i = 0; i < floors; i++) {
-        const line = new THREE.Mesh(lineGeo, lineMat.clone());
-        line.position.y = i * floorHeight + 0.2;
-        scene.add(line);
-        glowLines.push(line);
+        // Slabs
+        dummySlab.position.set(0, i * floorHeight, 0);
+        dummySlab.updateMatrix();
+        slabs.setMatrixAt(i, dummySlab.matrix);
+
+        // Partitions (every 2 floors, random rotation)
+        if (i % 2 === 0 && partitionIdx < Math.floor(floors / 2)) {
+          dummySlab.position.set(0, i * floorHeight + floorHeight/2, 0);
+          dummySlab.rotation.y = Math.random() > 0.5 ? Math.PI / 2 : 0;
+          dummySlab.updateMatrix();
+          partitions.setMatrixAt(partitionIdx++, dummySlab.matrix);
+        }
       }
-      
+
+      slabs.instanceMatrix.needsUpdate = true;
+      partitions.instanceMatrix.needsUpdate = true;
+      scene.add(slabs, partitions);
+
       // =========================================================================
-      // 8. PARTICLES
+      // 7. PARTICLES (PRESERVED & TWEAKED)
       // =========================================================================
-      const particleCount = isMobile ? 300 : 600;
+      const particleCount = isMobile ? 200 : 400;
       const particlePositions = new Float32Array(particleCount * 3);
-      
+
       for (let i = 0; i < particleCount; i++) {
         particlePositions[i * 3] = (Math.random() - 0.5) * 120;
         particlePositions[i * 3 + 1] = Math.random() * floors * floorHeight;
         particlePositions[i * 3 + 2] = (Math.random() - 0.5) * 120;
       }
-      
+
       const particleGeo = new THREE.BufferGeometry();
       particleGeo.setAttribute("position", new THREE.BufferAttribute(particlePositions, 3));
-      
+
       const particleMat = new THREE.PointsMaterial({
-        size: 0.3,
-        color: 0x00e5ff,
+        size: 0.15,
+        color: 0x88aacc, // Subtle mist color
         transparent: true,
-        opacity: 0.4,
+        opacity: 0.6,
         blending: THREE.AdditiveBlending,
         depthWrite: false,
       });
-      
+
       const particles = new THREE.Points(particleGeo, particleMat);
       scene.add(particles);
-      
+
       // =========================================================================
-      // 9. GROUND GRID
+      // 8. GROUND (PHASE 7)
       // =========================================================================
-      const gridHelper = new THREE.GridHelper(100, 40, 0x00e5ff, 0x0a1628);
-      gridHelper.position.y = -0.5;
-      (gridHelper.material as THREE.Material).opacity = 0.15;
-      (gridHelper.material as THREE.Material).transparent = true;
+      const groundGeo = new THREE.PlaneGeometry(200, 200);
+      const groundMat = new THREE.MeshStandardMaterial({
+        color: 0x0a0a0a,
+        roughness: 0.9,
+        metalness: 0.1
+      });
+      const ground = new THREE.Mesh(groundGeo, groundMat);
+      ground.rotation.x = -Math.PI / 2;
+      ground.position.y = -0.5;
+      scene.add(ground);
+
+      // Grid overlay
+      const gridHelper = new THREE.GridHelper(200, 50, 0x000000, 0x111111);
+      gridHelper.position.y = -0.4;
       scene.add(gridHelper);
-      
+
       // =========================================================================
-      // 10. GSAP SCROLL ANIMATION V3 (The Awwwards Cinematic Drone Path)
+      // 9. GSAP SCROLL ANIMATION (PRESERVED LOGIC)
       // =========================================================================
       
-      // وضع الكاميرا المبدئي (عالية وتنظر للمبنى من الخارج)
       camera.position.set(buildingSize * 1.5, floors * floorHeight + 20, buildingSize * 1.5);
-      
-      // إنشاء نقطة وهمية لتنظر إليها الكاميرا (Target)، هذا يتيح لنا تحريك "رأس" الكاميرا بسلاسة
       const cameraTarget = new THREE.Vector3(0, (floors * floorHeight) / 2, 0);
-      
+
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: "body",
@@ -271,84 +391,79 @@ export default function WebGLCanvas() {
           scrub: 1.5
         }
       });
-      
-      // --- المشهد الأول (0% إلى 25%): الغوص إلى داخل المبنى (قسم خدماتنا) ---
-      // الكاميرا تدخل بين الأعمدة
+
+      // --- Stage 1 (0% - 25%) ---
       tl.to(camera.position, { x: 8, y: floorHeight * 8, z: 8, ease: "power1.inOut", duration: 1 }, 0);
-      // الكاميرا تنظر إلى قلب المبنى الخرساني
       tl.to(cameraTarget, { x: 0, y: floorHeight * 8, z: 0, ease: "power1.inOut", duration: 1 }, 0);
-      // بداية تحول المخطط إلى خرسانة
-      tl.to(solidMat, { opacity: 0.5, duration: 1, ease: "none" }, 0);
-      tl.to(wireMat, { opacity: 0.1, duration: 1, ease: "none" }, 0);
       
-      // --- المشهد الثاني (25% إلى 50%): التجول بالداخل والنظر للأعلى (قسم لماذا نحن) ---
-      // الكاميرا تعبر للجهة المعاكسة داخل المبنى
+      // We animate 'solidMat' opacity for the structural reveal
+      tl.to(solidMat, { opacity: 0.6, duration: 1, ease: "none" }, 0);
+      // We animate metal and glass separately for better control
+      tl.to(metalMat, { opacity: 0.8, duration: 1, ease: "none" }, 0);
+      tl.to(glassMat, { opacity: 0.6, duration: 1, ease: "none" }, 0);
+      tl.to(windowLightMat, { opacity: 1.0, duration: 1, ease: "none" }, 0);
+
+      // --- Stage 2 (25% - 50%) ---
       tl.to(camera.position, { x: -8, y: floorHeight * 5, z: -8, ease: "power1.inOut", duration: 1 }, 1);
-      // الكاميرا تلتفت وتنظر للأعلى بشموخ نحو السقف! (تأثير سينمائي مذهل)
       tl.to(cameraTarget, { x: 0, y: floorHeight * 20, z: 0, ease: "power1.inOut", duration: 1 }, 1);
       tl.to(solidMat, { opacity: 0.8, duration: 1, ease: "none" }, 1);
-      
-      // --- المشهد الثالث (50% إلى 75%): الخروج من المبنى (قسم آلية العمل) ---
-      // الكاميرا تخرج من المبنى وتصبح قريبة من الأرض
+      tl.to(glassMat, { opacity: 0.8, duration: 1, ease: "none" }, 1);
+
+      // --- Stage 3 (50% - 75%) ---
       tl.to(camera.position, { x: 0, y: floorHeight * 2, z: buildingSize * 1.5, ease: "power1.inOut", duration: 1 }, 2);
-      // الكاميرا تنظر إلى منتصف المبنى من الخارج
       tl.to(cameraTarget, { x: 0, y: floorHeight * 10, z: 0, ease: "power1.inOut", duration: 1 }, 2);
-      
-      // --- المشهد الرابع (75% إلى 100%): اللقطة الختامية المهيبة (قسم التواصل) ---
-      // تراجع واسع للكاميرا (Wide Shot) لإظهار الهيكل كاملاً
+
+      // --- Stage 4 (75% - 100%) ---
       tl.to(camera.position, { x: buildingSize * 1.8, y: floorHeight * 12, z: buildingSize * 2.2, ease: "power2.out", duration: 1 }, 3);
-      // الكاميرا تستقر بالنظر إلى مركز المبنى
       tl.to(cameraTarget, { x: 0, y: floorHeight * 10, z: 0, ease: "power2.out", duration: 1 }, 3);
-      // المبنى يصبح صلباً بالكامل بنسبة 100% والمخطط يختفي تماماً
-      tl.to(solidMat, { opacity: 1, duration: 1, ease: "none" }, 3);
-      tl.to(wireMat, { opacity: 0, duration: 1, ease: "none" }, 3);
       
-      // تحديث زاوية نظر الكاميرا في كل إطار (Frame) بناءً على حركة الهدف
+      // Final fade to fully solid building
+      tl.to(solidMat, { opacity: 1.0, duration: 1, ease: "none" }, 3);
+      tl.to(metalMat, { opacity: 1.0, duration: 1, ease: "none" }, 3);
+      tl.to(glassMat, { opacity: 0.9, duration: 1, ease: "none" }, 3);
+
       gsap.ticker.add(() => {
         camera.lookAt(cameraTarget);
       });
-      
+
       // =========================================================================
-      // 11. ANIMATION LOOP
+      // 10. ANIMATION LOOP
       // =========================================================================
       const clock = new THREE.Clock();
-      
+
       const animate = () => {
         animationId = requestAnimationFrame(animate);
-        
+
         const elapsed = clock.getElapsedTime();
-        
-        // Animate glow lines
-        glowLines.forEach((line, i) => {
-          const mat = line.material as THREE.MeshBasicMaterial;
-          mat.opacity = 0.12 + Math.sin(elapsed * 1.5 + i * 0.3) * 0.08;
-        });
-        
-        // Animate particles
+
+        // Animate particles (subtle drift)
         const positions = particles.geometry.attributes.position.array as Float32Array;
         for (let i = 0; i < positions.length; i += 3) {
-          positions[i + 1] += Math.sin(elapsed * 0.5 + i * 0.05) * 0.008;
-          positions[i] += Math.cos(elapsed * 0.3 + i * 0.03) * 0.004;
+          positions[i + 1] += Math.sin(elapsed * 0.5 + i) * 0.005;
         }
         particles.geometry.attributes.position.needsUpdate = true;
-        particles.rotation.y = elapsed * 0.003;
-        
+        particles.rotation.y = elapsed * 0.001;
+
+        // Animate Window Flicker (subtle)
+        // Performance: Only update colors occasionally or via shader for better perf
+        // Here we skip per-frame update for performance, relying on initial random setup
+
         renderer.render(scene, camera);
       };
-      
+
       animate();
-      
-      console.log("✅ CINEMATIC DRONE SCENE INITIALIZED - 4 STAGES READY!");
-      
+
+      console.log("✅ REALISTIC ARCHITECTURAL TOWER INITIALIZED");
+
       // Resize handler
       const onResize = () => {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
       };
-      
+
       window.addEventListener("resize", onResize);
-      
+
       return () => {
         window.removeEventListener("resize", onResize);
         cancelAnimationFrame(animationId);
@@ -356,9 +471,9 @@ export default function WebGLCanvas() {
         scene.clear();
       };
     };
-    
+
     const cleanupPromise = initScene();
-    
+
     return () => {
       if (lenisRef.current) {
         lenisRef.current.destroy();
@@ -372,6 +487,15 @@ export default function WebGLCanvas() {
     <canvas
       ref={canvasRef}
       id="bg"
+      style={{ 
+        position: 'fixed', 
+        top: 0, 
+        left: 0, 
+        width: '100%', 
+        height: '100%', 
+        zIndex: -1 
+      }}
     />
   );
 }
+```
