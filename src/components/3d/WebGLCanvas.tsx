@@ -16,12 +16,12 @@ export default function WebGLCanvas() {
 
   useEffect(() => {
     if (typeof window === "undefined" || !canvasRef.current || isInitialized.current) return;
-
+    
     isInitialized.current = true;
     let animationId: number;
-
+    
     // =========================================================================
-    // LENIS SMOOTH SCROLL (PRESERVED)
+    // LENIS SMOOTH SCROLL (Untouched)
     // =========================================================================
     const lenis = new Lenis({
       duration: 1.2,
@@ -32,14 +32,14 @@ export default function WebGLCanvas() {
       wheelMultiplier: 1,
       touchMultiplier: 2,
     });
-
+    
     lenisRef.current = lenis;
     lenis.on("scroll", ScrollTrigger.update);
-
+    
     gsap.ticker.add((time) => {
       lenis.raf(time * 1000);
     });
-
+    
     gsap.ticker.lagSmoothing(0);
 
     // =========================================================================
@@ -47,339 +47,238 @@ export default function WebGLCanvas() {
     // =========================================================================
     const initScene = async () => {
       const THREE = await import("three");
-
+      
       const canvas = canvasRef.current;
       if (!canvas) return;
-
-      // =========================================================================
-      // 1. BASIC SETUP (PRESERVED)
-      // =========================================================================
+      
+      // 1. BASIC SETUP
       const scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x050a15);
-      scene.fog = new THREE.FogExp2(0x050a15, 0.006);
-
+      // بيئة نهارية مشرقة وواقعية
+      scene.background = new THREE.Color(0xe8f0f8); 
+      scene.fog = new THREE.FogExp2(0xe8f0f8, 0.004);
+      
       const isMobile = window.innerWidth < 768;
-
-      const camera = new THREE.PerspectiveCamera(
-        60,
-        window.innerWidth / window.innerHeight,
-        0.1,
-        1000
-      );
-
-      // Building parameters
+      const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+      
+      // إعدادات المبنى
       const floors = 25;
       const floorHeight = 3.5;
       const buildingSize = 24;
       const coreSize = 8;
-
+      
       const renderer = new THREE.WebGLRenderer({
         canvas,
         antialias: !isMobile,
         alpha: false,
         powerPreference: "high-performance",
       });
-
+      
       renderer.setSize(window.innerWidth, window.innerHeight);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1 : 2));
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.0;
+      renderer.toneMappingExposure = 1.3; // إضاءة ساطعة وفخمة
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-      // =========================================================================
-      // 2. LIGHTING UPGRADE (PHASE 6)
-      // =========================================================================
-      // Soft ambient (subtle blue)
-      const ambientLight = new THREE.AmbientLight(0x4466aa, 0.4);
-      scene.add(ambientLight);
+      // 2. LIGHTING SYSTEM (Daylight & Premium Look)
+      const hemiLight = new THREE.HemisphereLight(0xffffff, 0xebf2fa, 0.6);
+      scene.add(hemiLight);
 
-      // Main directional (sun)
-      const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-      dirLight.position.set(50, 100, 50);
-      scene.add(dirLight);
+      const sunLight = new THREE.DirectionalLight(0xfff5e6, 2.0); // ضوء شمس دافئ
+      sunLight.position.set(100, 150, 50);
+      scene.add(sunLight);
 
-      // Interior warm lights
-      const interiorLight = new THREE.PointLight(0xffaa55, 1.5, 150);
-      interiorLight.position.set(0, floors * floorHeight / 2, 0);
-      scene.add(interiorLight);
+      const groundBounce = new THREE.DirectionalLight(0xdde6ee, 0.5); // انعكاس الأرض
+      groundBounce.position.set(-50, -50, -50);
+      scene.add(groundBounce);
 
-      // Exterior accent (subtle cyan, distant)
-      const accentLight = new THREE.PointLight(0x00e5ff, 0.6, 300);
-      accentLight.position.set(-60, 80, -60);
-      scene.add(accentLight);
+      // 3. MATERIALS SYSTEM (Premium Realistic Materials)
+      // مواد وهمية نستخدمها فقط لربطها مع GSAP Timeline الموجود مسبقاً
+      const solidMat = new THREE.MeshBasicMaterial({ opacity: 0, transparent: true });
+      const wireMat = new THREE.MeshBasicMaterial({ opacity: 0, transparent: true });
 
-      // =========================================================================
-      // 3. MATERIALS REBUILD (PHASE 4)
-      // =========================================================================
-      
-      // Primary Structural Material (Used for Core, Floor Slabs, Mullions)
-      // We keep 'solidMat' name so existing GSAP timeline works on it.
-      const solidMat = new THREE.MeshStandardMaterial({
-        color: 0x1a2744, // Concrete dark blue
-        roughness: 0.7,
-        metalness: 0.1,
-        transparent: true,
-        opacity: 0 // Animated by GSAP
-      });
-
-      // Metal Frame Material (For Mullions/Spandrels)
-      const metalMat = new THREE.MeshStandardMaterial({
-        color: 0x8a9bb0, // Silver/Grey metal
-        roughness: 0.4,
-        metalness: 0.8,
-        transparent: true,
-        opacity: 0 // Animated by GSAP
-      });
-
-      // Glass Material
+      // المواد المعمارية الحقيقية (تبدأ شفافة لتتفاعل مع تأثير السكرول)
       const glassMat = new THREE.MeshPhysicalMaterial({
-        color: 0x88ccff,
-        metalness: 0.1,
-        roughness: 0.1,
-        transmission: 0.9, // Real glass effect
-        transparent: true,
-        opacity: 0, // Animated manually
-        thickness: 0.5
+        color: 0x88aabb, metalness: 0.9, roughness: 0.1, transmission: 0.8,
+        transparent: true, opacity: 0, envMapIntensity: 1.0
       });
 
-      // Window "Light" Material (InstancedMesh color will override)
-      const windowLightMat = new THREE.MeshBasicMaterial({
-        vertexColors: true,
-        transparent: true,
-        opacity: 0
+      const metalMat = new THREE.MeshStandardMaterial({
+        color: 0xc0c0c0, metalness: 0.8, roughness: 0.3,
+        transparent: true, opacity: 0
       });
 
-      // =========================================================================
-      // 4. BUILDING CORE (PHASE 5)
-      // =========================================================================
-      const coreGeo = new THREE.BoxGeometry(coreSize, floors * floorHeight, coreSize);
-      const coreMesh = new THREE.Mesh(coreGeo, solidMat);
-      coreMesh.position.y = (floors * floorHeight) / 2;
-      scene.add(coreMesh);
+      const wallMat = new THREE.MeshStandardMaterial({
+        color: 0xf5f5f0, roughness: 0.9, metalness: 0.0,
+        transparent: true, opacity: 0
+      });
 
-      // =========================================================================
-      // 5. FACADE SYSTEM (PHASE 2 & 8)
-      // =========================================================================
-      
-      // Configuration
-      const panelsPerSide = isMobile ? 4 : 6;
-      const panelWidth = buildingSize / panelsPerSide;
-      const mullionWidth = 0.12;
-      const spandrelHeight = 0.8;
-      const windowDepth = 0.15; // Slight extrusion
+      const woodMat = new THREE.MeshStandardMaterial({
+        color: 0x8b5a2b, roughness: 0.8, transparent: true, opacity: 0
+      });
 
-      // Counts
-      const totalMullions = (panelsPerSide + 1) * 4 * floors;
-      const totalSpandrels = panelsPerSide * 4 * floors;
-      const totalWindows = panelsPerSide * 4 * floors;
+      const fabricMat = new THREE.MeshStandardMaterial({
+        color: 0x4a6984, roughness: 0.9, transparent: true, opacity: 0
+      });
 
-      // Geometries
-      const mullionGeo = new THREE.BoxGeometry(mullionWidth, floorHeight, 0.3);
-      const spandrelGeo = new THREE.BoxGeometry(panelWidth, spandrelHeight, 0.25);
-      const windowGeo = new THREE.BoxGeometry(panelWidth - 0.1, floorHeight - spandrelHeight - 0.2, 0.1);
-      
-      // InstancedMeshes
-      const mullionMesh = new THREE.InstancedMesh(mullionGeo, metalMat, totalMullions);
-      const spandrelMesh = new THREE.InstancedMesh(spandrelGeo, metalMat, totalSpandrels);
-      const windowMesh = new THREE.InstancedMesh(windowGeo, glassMat, totalWindows); // Glass shell
-      const lightMesh = new THREE.InstancedMesh(windowGeo, windowLightMat, totalWindows); // Interior light
+      const coreMat = new THREE.MeshStandardMaterial({
+        color: 0x2a2a2a, roughness: 0.9, transparent: true, opacity: 0
+      });
 
-      const dummy = new THREE.Object3D();
-      const color = new THREE.Color();
+      // 4. CORE & INTERIOR SYSTEM
+      const buildInterior = () => {
+        // النواة الخرسانية
+        const coreGeo = new THREE.BoxGeometry(coreSize, floors * floorHeight, coreSize);
+        const coreSolid = new THREE.Mesh(coreGeo, coreMat);
+        coreSolid.position.y = (floors * floorHeight) / 2;
+        scene.add(coreSolid);
 
-      // Warm and Cool colors for windows
-      const warmColor = new THREE.Color(0xFFD9A0);
-      const coolColor = new THREE.Color(0x3A6499);
-      const offColor = new THREE.Color(0x000000);
+        // الأرضيات (الأسقف)
+        const slabGeo = new THREE.BoxGeometry(buildingSize - 0.2, 0.4, buildingSize - 0.2);
+        const slabMesh = new THREE.InstancedMesh(slabGeo, wallMat, floors);
 
-      let mullionIndex = 0;
-      let panelIndex = 0;
+        // الجدران الداخلية (لتقسيم الغرف)
+        const partitionCount = floors * 12; 
+        const wallGeo = new THREE.BoxGeometry(0.2, floorHeight, buildingSize * 0.4);
+        const partitionMesh = new THREE.InstancedMesh(wallGeo, wallMat, partitionCount);
+        
+        const dummy = new THREE.Object3D();
+        let wIndex = 0;
 
-      // Iterate Floors
-      for (let f = 0; f < floors; f++) {
-        const yBase = f * floorHeight;
-
-        // Iterate Sides (4 sides)
-        for (let s = 0; s < 4; s++) {
-          // Calculate side offset/rotation logic
-          // We manually position things on the perimeter
+        for (let i = 0; i < floors; i++) {
+          const y = i * floorHeight;
           
-          // Helper to get position based on side and step
-          const getPos = (step: number) => {
-            const x = step * panelWidth - buildingSize / 2 + panelWidth / 2;
-            const offset = buildingSize / 2;
-            
-            // Side 0: Front (z+)
-            // Side 1: Right (x+)
-            // Side 2: Back (z-)
-            // Side 3: Left (x-)
-            
-            if (s === 0) return { x: x, z: offset };
-            if (s === 1) return { x: offset, z: -x }; // Rotate 90
-            if (s === 2) return { x: -x, z: -offset }; // Rotate 180
-            return { x: -offset, z: x }; // Rotate 270
-          };
+          dummy.position.set(0, y, 0);
+          dummy.updateMatrix();
+          slabMesh.setMatrixAt(i, dummy.matrix);
 
-          // 1. Place Mullions (Vertical columns)
-          for (let m = 0; m <= panelsPerSide; m++) {
-            const pos = getPos(m - 0.5); // Offset by half panel
-            dummy.position.set(
-              pos.x,
-              yBase + floorHeight / 2,
-              pos.z
-            );
+          for (let j = 0; j < 12; j++) {
+            const isHorizontal = Math.random() > 0.5;
+            const posX = (Math.random() - 0.5) * (buildingSize - 4);
+            const posZ = (Math.random() - 0.5) * (buildingSize - 4);
             
-            // Rotate mullion to face outward
-            if (s === 1) dummy.rotation.y = Math.PI / 2;
-            else if (s === 2) dummy.rotation.y = Math.PI;
-            else if (s === 3) dummy.rotation.y = -Math.PI / 2;
-            else dummy.rotation.y = 0;
+            // تجنب وضع جدران داخل النواة
+            if (Math.abs(posX) < coreSize/2 && Math.abs(posZ) < coreSize/2) continue;
 
+            dummy.position.set(posX, y + floorHeight / 2, posZ);
+            dummy.rotation.set(0, isHorizontal ? Math.PI / 2 : 0, 0);
             dummy.updateMatrix();
-            mullionMesh.setMatrixAt(mullionIndex++, dummy.matrix);
+            if(wIndex < partitionCount) partitionMesh.setMatrixAt(wIndex++, dummy.matrix);
           }
+        }
+        scene.add(slabMesh, partitionMesh);
+      };
 
-          // 2. Place Spandrels (Bottom horizontal metal strip)
-          for (let p = 0; p < panelsPerSide; p++) {
-            const pos = getPos(p);
-            dummy.position.set(
-              pos.x,
-              yBase + spandrelHeight / 2,
-              pos.z
-            );
+      // 5. FURNITURE SYSTEM (Life inside the building)
+      const buildFurniture = () => {
+        const deskGeo = new THREE.BoxGeometry(1.5, 0.8, 0.8);
+        const bedGeo = new THREE.BoxGeometry(2.0, 0.5, 1.5);
+        const totalItems = floors * 15;
+        
+        const deskMesh = new THREE.InstancedMesh(deskGeo, woodMat, totalItems);
+        const bedMesh = new THREE.InstancedMesh(bedGeo, fabricMat, totalItems);
+        
+        const dummy = new THREE.Object3D();
+        let dIndex = 0, bIndex = 0;
+
+        for (let i = 0; i < floors; i++) {
+          const y = i * floorHeight;
+          const isResidential = i > floors / 2; // الطوابق العليا سكنية، السفلى مكاتب
+
+          for (let j = 0; j < 15; j++) {
+            const posX = (Math.random() - 0.5) * (buildingSize - 2);
+            const posZ = (Math.random() - 0.5) * (buildingSize - 2);
             
-            if (s === 1) dummy.rotation.y = Math.PI / 2;
-            else if (s === 2) dummy.rotation.y = Math.PI;
-            else if (s === 3) dummy.rotation.y = -Math.PI / 2;
-            else dummy.rotation.y = 0;
+            if (Math.abs(posX) < coreSize/2 + 1 && Math.abs(posZ) < coreSize/2 + 1) continue;
 
+            dummy.position.set(posX, y + 0.4, posZ);
+            dummy.rotation.set(0, Math.random() * Math.PI, 0);
             dummy.updateMatrix();
-            spandrelMesh.setMatrixAt(panelIndex, dummy.matrix);
 
-            // 3. Place Windows & Lights
-            // Window position (above spandrel)
-            dummy.position.set(
-              pos.x,
-              yBase + spandrelHeight + (floorHeight - spandrelHeight) / 2,
-              pos.z + 0.05 // Slight extrusion
-            );
-            dummy.updateMatrix();
-            windowMesh.setMatrixAt(panelIndex, dummy.matrix);
-            lightMesh.setMatrixAt(panelIndex, dummy.matrix);
-
-            // 4. Window Color Logic (Phase 3)
-            // 30% chance ON, 70% OFF
-            const isOn = Math.random() > 0.7;
-            if (isOn) {
-              const isWarm = Math.random() > 0.4; // Mix of warm and cool
-              color.copy(isWarm ? warmColor : coolColor);
-              // Random intensity variation
-              color.multiplyScalar(0.8 + Math.random() * 0.4);
+            if (isResidential) {
+              if (Math.random() > 0.3) bedMesh.setMatrixAt(bIndex++, dummy.matrix);
             } else {
-              color.set(0x111111); // Dark interior
+              deskMesh.setMatrixAt(dIndex++, dummy.matrix);
             }
-            
-            lightMesh.setColorAt(panelIndex, color);
-            
-            panelIndex++;
           }
         }
-      }
+        scene.add(deskMesh, bedMesh);
+      };
 
-      mullionMesh.instanceMatrix.needsUpdate = true;
-      spandrelMesh.instanceMatrix.needsUpdate = true;
-      windowMesh.instanceMatrix.needsUpdate = true;
-      lightMesh.instanceMatrix.needsUpdate = true;
-      if (lightMesh.instanceColor) lightMesh.instanceColor.needsUpdate = true;
+      // 6. FACADE SYSTEM (Real glass curtain walls)
+      const buildFacade = () => {
+        const panelsPerSide = 10;
+        const panelWidth = buildingSize / panelsPerSide;
+        const totalPanels = floors * 4 * panelsPerSide;
 
-      scene.add(mullionMesh, spandrelMesh, windowMesh, lightMesh);
+        const glassMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(panelWidth, floorHeight, 0.1), glassMat, totalPanels);
+        const mullionMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(0.1, floorHeight, 0.2), metalMat, totalPanels + floors * 4);
+        const spandrelMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(panelWidth, 0.4, 0.15), metalMat, totalPanels);
 
-      // =========================================================================
-      // 6. INTERIOR DEPTH (PHASE 5)
-      // =========================================================================
-      
-      // Floor Slabs (Visual thickness inside)
-      const slabGeo = new THREE.BoxGeometry(buildingSize - 0.5, 0.4, buildingSize - 0.5);
-      const slabs = new THREE.InstancedMesh(slabGeo, solidMat, floors);
-      
-      // Interior Partitions (Random walls inside to avoid hollow look)
-      const partitionGeo = new THREE.BoxGeometry(buildingSize * 0.6, floorHeight - 0.5, 0.2);
-      const partitions = new THREE.InstancedMesh(partitionGeo, solidMat, Math.floor(floors / 2));
-      
-      const dummySlab = new THREE.Object3D();
-      let partitionIdx = 0;
+        const dummy = new THREE.Object3D();
+        let index = 0;
+        const half = buildingSize / 2;
 
-      for (let i = 0; i < floors; i++) {
-        // Slabs
-        dummySlab.position.set(0, i * floorHeight, 0);
-        dummySlab.updateMatrix();
-        slabs.setMatrixAt(i, dummySlab.matrix);
+        for (let i = 0; i < floors; i++) {
+          const y = i * floorHeight + floorHeight / 2;
+          for (let side = 0; side < 4; side++) {
+            for (let p = 0; p < panelsPerSide; p++) {
+              const t = (p + 0.5) * panelWidth - half;
+              let x = 0, z = 0, rotY = 0;
+              
+              if (side === 0) { x = t; z = half; rotY = 0; }
+              if (side === 1) { x = t; z = -half; rotY = Math.PI; }
+              if (side === 2) { x = half; z = t; rotY = Math.PI / 2; }
+              if (side === 3) { x = -half; z = t; rotY = -Math.PI / 2; }
 
-        // Partitions (every 2 floors, random rotation)
-        if (i % 2 === 0 && partitionIdx < Math.floor(floors / 2)) {
-          dummySlab.position.set(0, i * floorHeight + floorHeight/2, 0);
-          dummySlab.rotation.y = Math.random() > 0.5 ? Math.PI / 2 : 0;
-          dummySlab.updateMatrix();
-          partitions.setMatrixAt(partitionIdx++, dummySlab.matrix);
+              dummy.rotation.set(0, rotY, 0);
+              
+              // ألواح الزجاج
+              dummy.position.set(x, y, z);
+              dummy.updateMatrix();
+              glassMesh.setMatrixAt(index, dummy.matrix);
+
+              // الفواصل الأفقية بين الطوابق
+              dummy.position.set(x, i * floorHeight, z);
+              dummy.updateMatrix();
+              spandrelMesh.setMatrixAt(index, dummy.matrix);
+
+              // الإطارات المعدنية العمودية (Mullions)
+              let mx = x, mz = z;
+              if (side === 0) mx -= panelWidth / 2;
+              if (side === 1) mx += panelWidth / 2;
+              if (side === 2) mz -= panelWidth / 2;
+              if (side === 3) mz += panelWidth / 2;
+              
+              dummy.position.set(mx, y, mz);
+              dummy.updateMatrix();
+              mullionMesh.setMatrixAt(index, dummy.matrix);
+
+              index++;
+            }
+          }
         }
-      }
+        scene.add(glassMesh, mullionMesh, spandrelMesh);
+      };
 
-      slabs.instanceMatrix.needsUpdate = true;
-      partitions.instanceMatrix.needsUpdate = true;
-      scene.add(slabs, partitions);
+      // بناء المشروع
+      buildInterior();
+      buildFurniture();
+      buildFacade();
 
-      // =========================================================================
-      // 7. PARTICLES (PRESERVED & TWEAKED)
-      // =========================================================================
-      const particleCount = isMobile ? 200 : 400;
-      const particlePositions = new Float32Array(particleCount * 3);
-
-      for (let i = 0; i < particleCount; i++) {
-        particlePositions[i * 3] = (Math.random() - 0.5) * 120;
-        particlePositions[i * 3 + 1] = Math.random() * floors * floorHeight;
-        particlePositions[i * 3 + 2] = (Math.random() - 0.5) * 120;
-      }
-
-      const particleGeo = new THREE.BufferGeometry();
-      particleGeo.setAttribute("position", new THREE.BufferAttribute(particlePositions, 3));
-
-      const particleMat = new THREE.PointsMaterial({
-        size: 0.15,
-        color: 0x88aacc, // Subtle mist color
-        transparent: true,
-        opacity: 0.6,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false,
-      });
-
-      const particles = new THREE.Points(particleGeo, particleMat);
-      scene.add(particles);
+      // الأرضية الخارجية
+      const baseGeo = new THREE.BoxGeometry(buildingSize * 3, 1, buildingSize * 3);
+      const baseMat = new THREE.MeshStandardMaterial({ color: 0xe0e5ec, roughness: 0.8 });
+      const baseMesh = new THREE.Mesh(baseGeo, baseMat);
+      baseMesh.position.y = -0.5;
+      scene.add(baseMesh);
 
       // =========================================================================
-      // 8. GROUND (PHASE 7)
+      // 7. GSAP SCROLL ANIMATION (UNTOUCHED LOGIC)
       // =========================================================================
-      const groundGeo = new THREE.PlaneGeometry(200, 200);
-      const groundMat = new THREE.MeshStandardMaterial({
-        color: 0x0a0a0a,
-        roughness: 0.9,
-        metalness: 0.1
-      });
-      const ground = new THREE.Mesh(groundGeo, groundMat);
-      ground.rotation.x = -Math.PI / 2;
-      ground.position.y = -0.5;
-      scene.add(ground);
-
-      // Grid overlay
-      const gridHelper = new THREE.GridHelper(200, 50, 0x000000, 0x111111);
-      gridHelper.position.y = -0.4;
-      scene.add(gridHelper);
-
-      // =========================================================================
-      // 9. GSAP SCROLL ANIMATION (PRESERVED LOGIC)
-      // =========================================================================
-      
       camera.position.set(buildingSize * 1.5, floors * floorHeight + 20, buildingSize * 1.5);
       const cameraTarget = new THREE.Vector3(0, (floors * floorHeight) / 2, 0);
-
+      
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: "body",
@@ -388,79 +287,61 @@ export default function WebGLCanvas() {
           scrub: 1.5
         }
       });
-
-      // --- Stage 1 (0% - 25%) ---
+      
+      // المشهد 1: الدخول
       tl.to(camera.position, { x: 8, y: floorHeight * 8, z: 8, ease: "power1.inOut", duration: 1 }, 0);
       tl.to(cameraTarget, { x: 0, y: floorHeight * 8, z: 0, ease: "power1.inOut", duration: 1 }, 0);
+      tl.to(solidMat, { opacity: 0.5, duration: 1, ease: "none" }, 0);
       
-      // We animate 'solidMat' opacity for the structural reveal
-      tl.to(solidMat, { opacity: 0.6, duration: 1, ease: "none" }, 0);
-      // We animate metal and glass separately for better control
-      tl.to(metalMat, { opacity: 0.8, duration: 1, ease: "none" }, 0);
-      tl.to(glassMat, { opacity: 0.6, duration: 1, ease: "none" }, 0);
-      tl.to(windowLightMat, { opacity: 1.0, duration: 1, ease: "none" }, 0);
-
-      // --- Stage 2 (25% - 50%) ---
+      // المشهد 2: النظر للأعلى داخل المبنى
       tl.to(camera.position, { x: -8, y: floorHeight * 5, z: -8, ease: "power1.inOut", duration: 1 }, 1);
       tl.to(cameraTarget, { x: 0, y: floorHeight * 20, z: 0, ease: "power1.inOut", duration: 1 }, 1);
       tl.to(solidMat, { opacity: 0.8, duration: 1, ease: "none" }, 1);
-      tl.to(glassMat, { opacity: 0.8, duration: 1, ease: "none" }, 1);
-
-      // --- Stage 3 (50% - 75%) ---
+      
+      // المشهد 3: الخروج
       tl.to(camera.position, { x: 0, y: floorHeight * 2, z: buildingSize * 1.5, ease: "power1.inOut", duration: 1 }, 2);
       tl.to(cameraTarget, { x: 0, y: floorHeight * 10, z: 0, ease: "power1.inOut", duration: 1 }, 2);
-
-      // --- Stage 4 (75% - 100%) ---
+      
+      // المشهد 4: اللقطة الختامية
       tl.to(camera.position, { x: buildingSize * 1.8, y: floorHeight * 12, z: buildingSize * 2.2, ease: "power2.out", duration: 1 }, 3);
       tl.to(cameraTarget, { x: 0, y: floorHeight * 10, z: 0, ease: "power2.out", duration: 1 }, 3);
+      tl.to(solidMat, { opacity: 1, duration: 1, ease: "none" }, 3);
       
-      // Final fade to fully solid building
-      tl.to(solidMat, { opacity: 1.0, duration: 1, ease: "none" }, 3);
-      tl.to(metalMat, { opacity: 1.0, duration: 1, ease: "none" }, 3);
-      tl.to(glassMat, { opacity: 0.9, duration: 1, ease: "none" }, 3);
-
       gsap.ticker.add(() => {
         camera.lookAt(cameraTarget);
       });
-
+      
       // =========================================================================
-      // 10. ANIMATION LOOP
+      // 8. ANIMATION LOOP (Syncing GSAP with Real Materials)
       // =========================================================================
-      const clock = new THREE.Clock();
-
       const animate = () => {
         animationId = requestAnimationFrame(animate);
-
-        const elapsed = clock.getElapsedTime();
-
-        // Animate particles (subtle drift)
-        const positions = particles.geometry.attributes.position.array as Float32Array;
-        for (let i = 0; i < positions.length; i += 3) {
-          positions[i + 1] += Math.sin(elapsed * 0.5 + i) * 0.005;
-        }
-        particles.geometry.attributes.position.needsUpdate = true;
-        particles.rotation.y = elapsed * 0.001;
-
-        // Animate Window Flicker (subtle)
-        // Performance: Only update colors occasionally or via shader for better perf
-        // Here we skip per-frame update for performance, relying on initial random setup
+        
+        // ربط شفافية المواد المعمارية بقيمة التايم لاين الخاصة بـ GSAP
+        const currentOpacity = solidMat.opacity;
+        
+        // الزجاج يكون شبه شفاف دائماً في النهاية، باقي المواد تصبح صلبة
+        glassMat.opacity = currentOpacity * 0.7; 
+        metalMat.opacity = currentOpacity;
+        wallMat.opacity = currentOpacity;
+        woodMat.opacity = currentOpacity;
+        fabricMat.opacity = currentOpacity;
+        coreMat.opacity = currentOpacity;
 
         renderer.render(scene, camera);
       };
-
+      
       animate();
-
-      console.log("✅ REALISTIC ARCHITECTURAL TOWER INITIALIZED");
-
+      
       // Resize handler
       const onResize = () => {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
       };
-
+      
       window.addEventListener("resize", onResize);
-
+      
       return () => {
         window.removeEventListener("resize", onResize);
         cancelAnimationFrame(animationId);
@@ -468,9 +349,9 @@ export default function WebGLCanvas() {
         scene.clear();
       };
     };
-
+    
     const cleanupPromise = initScene();
-
+    
     return () => {
       if (lenisRef.current) {
         lenisRef.current.destroy();
@@ -484,14 +365,7 @@ export default function WebGLCanvas() {
     <canvas
       ref={canvasRef}
       id="bg"
-      style={{ 
-        position: 'fixed', 
-        top: 0, 
-        left: 0, 
-        width: '100%', 
-        height: '100%', 
-        zIndex: -1 
-      }}
+      style={{ display: "block", width: "100vw", height: "100vh" }}
     />
   );
 }
